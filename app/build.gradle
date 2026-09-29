@@ -4,6 +4,7 @@ plugins {
 }
 
 android {
+    namespace 'br.com.igorbag.githubsearch'
     compileSdk 32
 
     defaultConfig {

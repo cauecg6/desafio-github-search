@@ -50,4 +50,26 @@
         app:layout_constraintTop_toBottomOf="@id/btn_confirmar"
         tools:listitem="@layout/repository_item" />
 
+    <ProgressBar
+        android:id="@+id/pb_loading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/rv_lista_repositories"
+        app:layout_constraintEnd_toEndOf="@id/rv_lista_repositories"
+        app:layout_constraintStart_toStartOf="@id/rv_lista_repositories"
+        app:layout_constraintTop_toTopOf="@id/rv_lista_repositories" />
+
+    <TextView
+        android:id="@+id/tv_mensagem"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:gravity="center"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/rv_lista_repositories"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/rv_lista_repositories" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

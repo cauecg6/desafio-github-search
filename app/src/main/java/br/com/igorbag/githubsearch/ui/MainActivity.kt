@@ -5,6 +5,12 @@ import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ProgressBar
+import android.widget.TextView
+import android.widget.Toast
+import android.view.inputmethod.InputMethodManager
+import android.view.View
+import java.io.IOException
 import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
@@ -24,6 +30,8 @@ class MainActivity : AppCompatActivity() {
     lateinit var btnConfirmar: Button
     lateinit var listaRepositories: RecyclerView
     lateinit var githubApi: GitHubService
+    lateinit var progressBar: ProgressBar
+    lateinit var tvMensagem: TextView
 
     companion object {
         private const val CHAVE_USUARIO = "usuario_github"
@@ -48,14 +56,21 @@ class MainActivity : AppCompatActivity() {
         nomeUsuario = findViewById(R.id.et_nome_usuario)
         btnConfirmar = findViewById(R.id.btn_confirmar)
         listaRepositories = findViewById(R.id.rv_lista_repositories)
+        progressBar = findViewById(R.id.pb_loading)
+        tvMensagem = findViewById(R.id.tv_mensagem)
     }
 
     //metodo responsavel por configurar os listeners click da tela
     private fun setupListeners() {
         // TODO 2 - ao clicar em confirmar, salva o usuario digitado
         btnConfirmar.setOnClickListener {
-            saveUserLocal()
-            getAllReposByUserName()
+            if (nomeUsuario.text.toString().trim().isEmpty()) {
+                Toast.makeText(this, R.string.usuario_vazio, Toast.LENGTH_SHORT).show()
+            } else {
+                hideKeyboard()
+                saveUserLocal()
+                getAllReposByUserName()
+            }
         }
     }
 
@@ -101,19 +116,55 @@ class MainActivity : AppCompatActivity() {
         val usuario = getSavedUser()
         if (usuario.isEmpty()) return
 
+        showLoading()
         githubApi.getAllRepositoriesByUser(usuario).enqueue(object : Callback<List<Repository>> {
             override fun onResponse(
                 call: Call<List<Repository>>,
                 response: Response<List<Repository>>
             ) {
-                if (response.isSuccessful) {
-                    response.body()?.let { setupAdapter(it) }
+                val repos = response.body()
+                when {
+                    response.isSuccessful && !repos.isNullOrEmpty() -> {
+                        setupAdapter(repos)
+                        showList()
+                    }
+                    response.isSuccessful -> showMessage(getString(R.string.lista_vazia))
+                    response.code() == 404 ->
+                        showMessage(getString(R.string.usuario_nao_encontrado))
+                    else -> showMessage(getString(R.string.erro_generico, response.code()))
                 }
             }
 
             override fun onFailure(call: Call<List<Repository>>, t: Throwable) {
+                // IOException = sem internet / servidor inacessivel
+                val mensagem = if (t is IOException) R.string.sem_internet else R.string.erro_inesperado
+                showMessage(getString(mensagem))
             }
         })
+    }
+
+    private fun showLoading() {
+        progressBar.visibility = View.VISIBLE
+        tvMensagem.visibility = View.GONE
+        listaRepositories.visibility = View.GONE
+    }
+
+    private fun showList() {
+        progressBar.visibility = View.GONE
+        tvMensagem.visibility = View.GONE
+        listaRepositories.visibility = View.VISIBLE
+    }
+
+    private fun showMessage(mensagem: String) {
+        progressBar.visibility = View.GONE
+        listaRepositories.visibility = View.GONE
+        tvMensagem.text = mensagem
+        tvMensagem.visibility = View.VISIBLE
+    }
+
+    private fun hideKeyboard() {
+        val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(nomeUsuario.windowToken, 0)
     }
 
     // Metodo responsavel por realizar a configuracao do adapter

@@ -4,4 +4,10 @@
     <string name="confirmar">Confirmar</string>
     <string name="compartilhar">Compartilhar repositório</string>
     <string name="exemplo_repositorio">Nome do repositório</string>
+    <string name="usuario_vazio">Digite um usuário do GitHub</string>
+    <string name="usuario_nao_encontrado">Usuário não encontrado no GitHub</string>
+    <string name="sem_internet">Sem conexão com a internet. Verifique sua rede e tente novamente</string>
+    <string name="lista_vazia">Este usuário não tem repositórios públicos</string>
+    <string name="erro_generico">Não foi possível carregar os repositórios (erro %1$d)</string>
+    <string name="erro_inesperado">Ocorreu um erro inesperado. Tente novamente</string>
 </resources>

@@ -8,6 +8,12 @@ import android.widget.EditText
 import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
+import br.com.igorbag.githubsearch.ui.adapter.RepositoryAdapter
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import br.com.igorbag.githubsearch.R
 import br.com.igorbag.githubsearch.data.GitHubService
 import br.com.igorbag.githubsearch.domain.Repository
@@ -30,7 +36,10 @@ class MainActivity : AppCompatActivity() {
         setupListeners()
         showUserName()
         setupRetrofit()
-        getAllReposByUserName()
+        // so busca se ja existe um usuario salvo
+        if (getSavedUser().isNotEmpty()) {
+            getAllReposByUserName()
+        }
     }
 
     // Metodo responsavel por realizar o setup da view e recuperar os Ids do layout
@@ -46,6 +55,7 @@ class MainActivity : AppCompatActivity() {
         // TODO 2 - ao clicar em confirmar, salva o usuario digitado
         btnConfirmar.setOnClickListener {
             saveUserLocal()
+            getAllReposByUserName()
         }
     }
 
@@ -61,10 +71,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun getSavedUser(): String {
+        val sharedPref = getPreferences(Context.MODE_PRIVATE)
+        return sharedPref.getString(CHAVE_USUARIO, "") ?: ""
+    }
+
     private fun showUserName() {
         // TODO 4 - se ja existe usuario salvo, mostra o valor no EditText
-        val sharedPref = getPreferences(Context.MODE_PRIVATE)
-        val usuarioSalvo = sharedPref.getString(CHAVE_USUARIO, "") ?: ""
+        val usuarioSalvo = getSavedUser()
         if (usuarioSalvo.isNotEmpty()) {
             nomeUsuario.setText(usuarioSalvo)
         }
@@ -72,25 +86,40 @@ class MainActivity : AppCompatActivity() {
 
     //Metodo responsavel por fazer a configuracao base do Retrofit
     fun setupRetrofit() {
-        /*
-           @TODO 5 -  realizar a Configuracao base do retrofit
-           Documentacao oficial do retrofit - https://square.github.io/retrofit/
-           URL_BASE da API do  GitHub= https://api.github.com/
-           lembre-se de utilizar o GsonConverterFactory mostrado no curso
-        */
+        // TODO 5 - configuracao base do Retrofit com o GsonConverterFactory
+        val retrofit = Retrofit.Builder()
+            .baseUrl("https://api.github.com/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        githubApi = retrofit.create(GitHubService::class.java)
     }
 
     //Metodo responsavel por buscar todos os repositorios do usuario fornecido
     fun getAllReposByUserName() {
-        // TODO 6 - realizar a implementacao do callback do retrofit e chamar o metodo setupAdapter se retornar os dados com sucesso
+        // TODO 6 - callback do Retrofit: se der certo, chama setupAdapter
+        val usuario = getSavedUser()
+        if (usuario.isEmpty()) return
+
+        githubApi.getAllRepositoriesByUser(usuario).enqueue(object : Callback<List<Repository>> {
+            override fun onResponse(
+                call: Call<List<Repository>>,
+                response: Response<List<Repository>>
+            ) {
+                if (response.isSuccessful) {
+                    response.body()?.let { setupAdapter(it) }
+                }
+            }
+
+            override fun onFailure(call: Call<List<Repository>>, t: Throwable) {
+            }
+        })
     }
 
     // Metodo responsavel por realizar a configuracao do adapter
     fun setupAdapter(list: List<Repository>) {
-        /*
-            @TODO 7 - Implementar a configuracao do Adapter , construir o adapter e instancia-lo
-            passando a listagem dos repositorios
-         */
+        // TODO 7 - cria o adapter com a lista de repositorios e liga no RecyclerView
+        listaRepositories.adapter = RepositoryAdapter(list)
     }
 
 

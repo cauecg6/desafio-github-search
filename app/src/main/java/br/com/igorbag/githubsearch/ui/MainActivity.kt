@@ -119,12 +119,21 @@ class MainActivity : AppCompatActivity() {
     // Metodo responsavel por realizar a configuracao do adapter
     fun setupAdapter(list: List<Repository>) {
         // TODO 7 - cria o adapter com a lista de repositorios e liga no RecyclerView
-        listaRepositories.adapter = RepositoryAdapter(list)
+        val adapter = RepositoryAdapter(list)
+        // TODO 12 - clique no item abre o repositorio no navegador
+        adapter.repoItemListener = { repository ->
+            openBrowser(repository.htmlUrl)
+        }
+        // TODO 11 - clique no icone de compartilhar envia o link do repositorio
+        adapter.btnShareListener = { repository ->
+            shareRepositoryLink(repository.htmlUrl)
+        }
+        listaRepositories.adapter = adapter
     }
 
 
     // Metodo responsavel por compartilhar o link do repositorio selecionado
-    // @Todo 11 - Colocar esse metodo no click do share item do adapter
+    // (TODO 11 resolvido no setupAdapter: usado no click do share do adapter)
     fun shareRepositoryLink(urlRepository: String) {
         val sendIntent: Intent = Intent().apply {
             action = Intent.ACTION_SEND
@@ -138,7 +147,7 @@ class MainActivity : AppCompatActivity() {
 
     // Metodo responsavel por abrir o browser com o link informado do repositorio
 
-    // @Todo 12 - Colocar esse metodo no click item do adapter
+    // (TODO 12 resolvido no setupAdapter: usado no click do item do adapter)
     fun openBrowser(urlRepository: String) {
         startActivity(
             Intent(
